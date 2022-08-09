@@ -1,7 +1,8 @@
 import argparse
 import os
 import sys
-import pandas as pd
+import polars as pl
+#import pandas as pd
 
 parser = argparse.ArgumentParser(description='Cyclops argparser')
 
@@ -91,23 +92,23 @@ sys.path.insert(0,cyc_dir)
 
 from CYCLOPS_2a_Seed import *
 
-
-fullnonseed_data_BHTC=pd.read_csv(seedfile)
-bhtc_seeds=fullnonseed_data_BHTC['geneSymbol'].tolist()
+fullnonseed_data_BHTC=pl.read_csv(seedfile)
 
 
-fullnonseed_data_merge=pd.read_csv(infile)
-# geneSymbol=fullnonseed_data_merge['Gene.Symbol'].tolist()
+colnames=fullnonseed_data_BHTC.columns
 
-# fullnonseed_geneSymbol=pd.DataFrame({'GeneSymbol0':geneSymbol,
-# 'GeneSymbol1':geneSymbol
-# })
-#fullnonseed_data2=pd.concat([fullnonseed_geneSymbol,fullnonseed_data_merge],axis=1)
-
-sampleName=fullnonseed_data_merge.columns[1:].tolist()
+bhtc_seeds=fullnonseed_data_BHTC.get_column(colnames[0]).to_list()
 
 
-getseed(fullnonseed_data_merge,bhtc_seeds,Seed_MaxCV,Seed_MinCV,Seed_MinMean,Seed_Blunt)
+fullnonseed_data_merge=pl.read_csv(infile)
+colnames=fullnonseed_data_merge.columns
+
+geneSymbol=fullnonseed_data_merge.get_column(colnames[0]).to_list()
+
+
+
+
+getseed(fullnonseed_data_merge,colnames,bhtc_seeds,Seed_MaxCV,Seed_MinCV,Seed_MinMean,Seed_Blunt)
 
 #seed_symbols_bhtc, seed_data_bhtc=getseed(fullnonseed_data_merge,bhtc_seeds,Seed_MaxCV,Seed_MinCV,Seed_MinMean,Seed_Blunt)
 
