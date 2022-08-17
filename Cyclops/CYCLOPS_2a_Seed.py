@@ -7,11 +7,11 @@ def clean_data(expression_data,bluntpercent=0.99):
 
     expression_data=expression_data.to_pandas()
     ngenes,nsamples=expression_data.shape
-    nfloor=1+math.floor((1-bluntpercent)*nsamples)
-    nceiling=math.ceil(bluntpercent*nsamples)
+    nfloor=math.floor((1-bluntpercent)*nsamples)
+    nceiling=math.ceil(bluntpercent*nsamples)-1
+
 
     for row in range(0,ngenes):
-
         temp=expression_data.iloc[row].to_list()
         temp.sort()
         vfloor=int(temp[nfloor])
@@ -23,6 +23,18 @@ def clean_data(expression_data,bluntpercent=0.99):
 
     return expression_data
 
+def condition(x,gene_means=0, gene_cvs_min=0,gene_cvs_max=0):
+    if gene_means!=0:
+        return x>gene_means
+
+    if gene_cvs_min!=0:
+        return x>gene_cvs_min
+    
+    if gene_cvs_max!=0:
+        return x<gene_cvs_max
+
+    
+
 
 def getseed(data,colnames,symbol_list,maxcv=.75,mincv=.07,minmean=500,blunt=.99):
     data_symbols=data.get_column(colnames[0]).to_list()
@@ -32,6 +44,7 @@ def getseed(data,colnames,symbol_list,maxcv=.75,mincv=.07,minmean=500,blunt=.99)
     ngenes,nsamples=expression_data.shape
 
     gene_means=expression_data.mean(axis=1).to_list()
+
     gene_sds=expression_data.std(axis=1).to_list()
 
     gene_cvs = [i / j for i, j in zip(gene_sds, gene_means)]
@@ -40,10 +53,22 @@ def getseed(data,colnames,symbol_list,maxcv=.75,mincv=.07,minmean=500,blunt=.99)
 
     criteria1=[data_symbols.index(x) for x in both]
 
+    criteria2=[idx for idx, element in enumerate(gene_means) if condition(element,gene_means=minmean)]
 
-    print(data_symbols)
-    print(symbol_list)
-    print(criteria1)
+    criteria3=[idx for idx, element in enumerate(gene_cvs) if condition(element,gene_cvs_min=mincv)]
+
+    criteria4=[idx for idx, element in enumerate(gene_cvs) if condition(element,gene_cvs_max=maxcv)]
+
+
+
+    both_temp = set(criteria1).intersection(criteria2)
+    both = set(both_temp).intersection(criteria3)
+    allcriteria = set(both).intersection(criteria4)
+
+    allcriteria=list(allcriteria)
+
+    print(allcriteria)
+
 
     
 
