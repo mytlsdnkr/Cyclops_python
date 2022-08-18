@@ -91,6 +91,7 @@ print("DFrac Var:",DFrac_Var)
 sys.path.insert(0,cyc_dir)
 
 from CYCLOPS_2a_Seed import *
+from CYCLOPS_2a_PreNPostprocessModule import *
 
 fullnonseed_data_BHTC=pl.read_csv(seedfile)
 
@@ -105,12 +106,13 @@ colnames=fullnonseed_data_merge.columns
 
 geneSymbol=fullnonseed_data_merge.get_column(colnames[0]).to_list()
 
+seed_symbols_bhtc,seed_data_bhtc=getseed(fullnonseed_data_merge,colnames,bhtc_seeds,Seed_MaxCV,Seed_MinCV,Seed_MinMean,Seed_Blunt)
+seed_data_bhtc=dispersion(seed_data_bhtc)
+
+outs_bhtc, norm_seed_data_bhtc, eigen_sig_fraction, eigen_sum_fraction=GetEigenGenes(seed_data_bhtc,Frac_Var,DFrac_Var,300)
 
 
 
-getseed(fullnonseed_data_merge,colnames,bhtc_seeds,Seed_MaxCV,Seed_MinCV,Seed_MinMean,Seed_Blunt)
-
-#seed_symbols_bhtc, seed_data_bhtc=getseed(fullnonseed_data_merge,bhtc_seeds,Seed_MaxCV,Seed_MinCV,Seed_MinMean,Seed_Blunt)
 
 
 
