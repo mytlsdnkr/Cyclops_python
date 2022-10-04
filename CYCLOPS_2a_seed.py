@@ -25,8 +25,8 @@ def clean_data_ip(data, bluntpercent = 0.99):
     return data
 
 def getseed(data, symbol_list, maxcv = 0.75, mincv = 0.07, minmean = 500, blunt = 0.99):
-    data_symbols = data.iloc[1:, 1]
-    data_data = data.iloc[1:, 3:]
+    data_symbols = data.iloc[0:, 1]
+    data_data = data.iloc[0:, 3:]
     data_data = clean_data_ip(data_data, blunt)
     ngenes = len(data_data.index)
     nsamples = len(data_data.columns)
