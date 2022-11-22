@@ -1,0 +1,18 @@
+export(AbsCor
+,NormForSine
+,SineFun
+,FormatSineOut
+,Opt2Shift
+,SineOptim
+,PipeR
+,ImpShift
+,PipeShiftCDF
+,scanK
+,NISFun
+,CalcMV
+,OscopeKM
+,OscopeENI
+,OscopeSine
+,FlagCluster
+,PermuCut)
+import(EBSeq, cluster, testthat, BiocParallel)
