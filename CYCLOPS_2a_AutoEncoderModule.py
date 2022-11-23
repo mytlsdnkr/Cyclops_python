@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[ ]:
 
 
 import numpy as np
@@ -23,22 +23,29 @@ def Find_Partner(x :int):
     partner = 1+(grp*2)+pelm
     return partner
 
+class Layer_Connections:
+    w = np.array([])
+    b = np.array([])
+
+def Initialize_Layer_Connections(layer_dim, in_dim):
+    w = np.random.normal(size = (layer_dim, in_dim))
+    b = np.random.normal(size = layer_dim)/100
+    
+    Layer_Connections.w = w
+    Layer_Connections.b = b
 ##############################################################################
-def Input_Layer(a):
-    a = np.float64(a)
-    return a
+class Input_Layer:
+    a = np.array([])
 
 def Create_InputLayer(in_dim :int):
-    l = Input_Layer(np.array([0]*in_dim))
-    return l
+    Input_Layer.a = np.array([0]*in_dim)
 ##############################################################################
-def BottleNeck_Layer(z, a, jstar):
-    z = np.float64(z)
-    a = np.float64(a)
+class BottleNeck_Layer:
+    z = np.array([])
+    a = np.array([])
     
-    jstar = np.int8(jstar)
-    
-    return z, a, jstar
+    a_func = np.array([])
+    jstar  = np.int8()
 
 # in julia, repmat function contain original data shape
 # in python, np.tile doesn't contain original data shape
@@ -54,15 +61,18 @@ def Create_BottleNeckLayer(layer_size :int, n_circ :int):
         jstar[i] = Find_Partner(i+1)
     for i in range(n_circ,layer_size):
         jstar[i] = i+1
-    z, a, jstar = BottleNeck_Layer(z, a, jstar)
     
-    return z, a, a_func, jstar
+    BottleNeck_Layer.z      = z
+    BottleNeck_Layer.a      = a
+    BottleNeck_Layer.a_func = a_func
+    BottleNeck_Layer.jstar  = jstar
 ##############################################################################          
-def Output_Layer(z, a):
-    z = np.float64(z)
-    a = np.float64(a)
+class Output_Layer:
+    z = np.array([])
+    a = np.array([])
     
-    return z, a
+    a_func  = np.array([])
+    a_deriv = np.array([])
     
 def Create_OutputLayer(out_dim :int, activ_fun, activ_deriv):
     z       = np.array([0]*out_dim)
@@ -70,20 +80,52 @@ def Create_OutputLayer(out_dim :int, activ_fun, activ_deriv):
     a_func  = np.tile(np.array([activ_fun]), out_dim)
     a_deriv = np.tile(np.array([activ_deriv]), out_dim)
     
-    z, a = Output_Layer(z,a)
-    
-    return z,a,a_func,a_deriv
+    Output_Layer.z        = z
+    Output_Layer.a        = a
+    Output_Layer.a_func   = a_func
+    Output_Layer.a_deriv  = a_deriv
 ##############################################################################     
+class NeuralNetwork:
+    dim     = int()
+    nbottle = int()
+    ncirc   = int()
+    ilayer  = Input_Layer()
+    blayer  = BottleNeck_Layer()
+    olayer  = Output_Layer()
+    c2      = Layer_Connections()
+    c3      = Layer_Connections()
+        
 def Create_Network(size :int, bottle_size :int, n_circ :int):
-    ilayer = Create_InputLayer(size)
-    blayer = Create_BottleNeckLayer(bottle_size, n_circ)
-    olayer = Create_OutputLayer(size, linr, linr_deriv)
+    Create_InputLayer(size)
+    Create_BottleNeckLayer(bottle_size, n_circ)
+    Create_OutputLayer(size, linr, linr_deriv)
     
-    return ilayer,blayer,olayer
+    NeuralNetwork.dim     = size
+    NeuralNetwork.nbottle = bottle_size
+    NeuralNetwork.ncirc   = n_circ
+    NeuralNetwork.ilayer  = Input_Layer
+    NeuralNetwork.blayer  = BottleNeck_Layer
+    NeuralNetwork.olayer  = Output_Layer
     
-tmpNN = Create_Network(4,2,2)
-
-print(tmpNN[0])
-print(tmpNN[1])
-print(tmpNN[2])
+    Initialize_Layer_Connections(bottle_size, size)
+    NeuralNetwork.c2      = Layer_Connections
+    
+    Initialize_Layer_Connections(size, bottle_size)
+    NeuralNetwork.c3      = Layer_Connections    
+############################################################################## 
+def Feed_Forward_ip(data, NN :NeuralNetwork):
+    NN.ilayer.a = data
+    NN.blayer.z = (NN.c2.w)*(NN.ilayer.a)+(NN.c2.b)
+    
+    for j in range(0, NN.ncirc):
+        jstar = Find_Partner(j+1)
+        NN.blayer.a[j] = NN.blayer.a_func[j](NN.blayer.z[j], NN.blayer.z[jstar])
+        
+    for j in range(NN.ncirc, NN.nbottle):
+        NN.blayer.a[j] = NN.blayer.a_func[j](NN.blayer.z[j])
+        
+    NN.olayer.z = (NN.c3.w)*(NN.blayer.a)+(NN.c3.b)
+    
+    for j in range(0, NN.dim):
+        NN.olayer.a[j] = NN.olayer.a_func[j](NN.olayer.z[j])
 
