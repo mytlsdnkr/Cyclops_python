@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import numpy as np
@@ -14,7 +14,7 @@ def circ(z :np.float64, zstar :np.float64):
     return result
 
 def linr_deriv(z :np.float64, dummy = 1.0):
-    1.0
+    return 1.0
 
 def Find_Partner(x :int):
     grp = (x-1)//2
@@ -128,4 +128,60 @@ def Feed_Forward_ip(data, NN :NeuralNetwork):
     
     for j in range(0, NN.dim):
         NN.olayer.a[j] = NN.olayer.a_func[j](NN.olayer.z[j])
+        
+def Find_Gradient_ip(data, NN :NeuralNetwork):
+    Feed_Forward_ip(data, NN)
+    
+    c2grads   = NN.c2
+    c2grads.w = NN.c2.w * 0
+    c2grads.b = NN.c2.b * 0
+    
+    c3grads   = NN.c3
+    c3grads.w = NN.c3.w * 0
+    c3grads.b = NN.c3.b * 0
+    
+    del_o = (-data + NN.olayer.a)
+    err   = (0.5*sum(np.power(del_o, 2)))
+    
+    for j in range(0, NN.dim):
+        del_o[j]     = NN.olayer.a_deriv[j](NN.olayer.z[j])*del_o[j]
+        c3grads.b[j] = (del_o[j])
+        for k in range(0, NN.nbottle):
+            c3grads.w[j,k] = (del_o[j])*(NN.blayer.a[k])
+    
+    r = np.array([0]*NN.ncirc)
+    for j in range(0, NN.ncirc):
+        jstar = Find_Partner(j+1)
+        r[j]  = math.sqrt(np.power(NN.blayer.z[j], 2) + np.power(NN.blayer.z[jstar], 2))
+        
+    del_b = np.array([0]*NN.nbottle)
+    
+    for j in range(0:NN.ncirc):
+        jstar = Find_Partner(j+1)
+        dsum  = 0
+        for k in range(0, NN.dim):
+            d    = del_o[k] * (1/(np.power(r[j],3))) * (NN.c3.w[k,j] * np.power(NN.blayer.z[jstar], 2) - 
+                                                        NN.c3.w[k,jstar] * (NN.blayer.z[j]) * (NN.blayer.z[jstar]))
+            dsum = dsum + d
+            
+        del_b[j]     = dsum
+        c2grads.b[j] = del_b[j]
+        
+        for k in range(0, NN.dim):
+            c2grads.w[j,k] = del_b[j] * NN.ilayer.a[k]
+    
+    for j in range(NN.ncirc:NN.nbottle):
+        dsum = 0
+        
+        for k in range(0, NN.dim):
+            d    = NN.c3.w[k,j]*del_o[k]
+            dsum = dsum + d
+        
+        del_b[j]     = dsum
+        c2grads.b[j] = del_b[j]
+        
+        for k in range(0, NN.dim):
+            c2grads.w[j,k] = del_b[j] * NN.ilayer.a[k]
+            
+    return c2grads, c3grads, err
 
